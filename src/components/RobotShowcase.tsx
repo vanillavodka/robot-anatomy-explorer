@@ -149,54 +149,75 @@ export const RobotShowcase = () => {
                     <div className="relative w-full h-full rounded-full border-2 border-accent" />
                   </button>
 
-                  {/* Extending line animation */}
+                  {/* Dashed polyline with text on line */}
                   {isHovered && !selectedComponent && (
-                    <div
-                      className="absolute -translate-x-1/2 z-10"
+                    <svg 
+                      className="absolute pointer-events-none z-10"
                       style={{ 
                         top: component.position.top, 
                         left: component.position.left,
+                        width: '400px',
+                        height: '200px',
+                        transform: 'translate(-50%, -50%)'
                       }}
                     >
-                      {/* Vertical line */}
-                      <div 
-                        className={`absolute left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-${lineDirection === 'down' ? 'b' : 't'} from-primary to-accent animate-fade-in`}
+                      {/* Dashed polyline path */}
+                      <polyline
+                        points={
+                          lineDirection === 'down' && textPosition === 'right' 
+                            ? "200,100 200,150 300,150"
+                            : lineDirection === 'down' && textPosition === 'left'
+                            ? "200,100 200,150 100,150"
+                            : lineDirection === 'down' && textPosition === 'center'
+                            ? "200,100 200,150 250,150"
+                            : lineDirection === 'up' && textPosition === 'right'
+                            ? "200,100 200,50 300,50"
+                            : lineDirection === 'up' && textPosition === 'left'
+                            ? "200,100 200,50 100,50"
+                            : "200,100 200,50 250,50"
+                        }
+                        fill="none"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="2"
+                        strokeDasharray="8 4"
+                        className="animate-fade-in"
                         style={{
-                          height: '80px',
-                          [lineDirection === 'down' ? 'top' : 'bottom']: '24px',
-                          animation: 'extend-line 0.3s ease-out forwards'
+                          filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.6))'
                         }}
                       />
                       
-                      {/* Horizontal line */}
-                      <div 
-                        className="absolute w-24 h-0.5 bg-gradient-to-r from-primary to-accent"
+                      {/* Text on the line with typewriter effect */}
+                      <text
+                        x={textPosition === 'right' ? '305' : textPosition === 'left' ? '95' : '255'}
+                        y={lineDirection === 'down' ? '155' : '55'}
+                        fill="hsl(var(--primary))"
+                        className="font-mono text-sm font-bold"
+                        textAnchor={textPosition === 'left' ? 'end' : 'start'}
                         style={{
-                          [lineDirection === 'down' ? 'top' : 'bottom']: lineDirection === 'down' ? '104px' : '-80px',
-                          left: textPosition === 'right' ? '24px' : textPosition === 'left' ? '-120px' : '-48px',
-                          animation: 'extend-line 0.3s ease-out 0.15s forwards',
-                          transformOrigin: textPosition === 'right' ? 'left' : 'right',
-                          opacity: 0
-                        }}
-                      />
-
-                      {/* Text label with typewriter effect */}
-                      <div 
-                        className="absolute whitespace-nowrap"
-                        style={{
-                          [lineDirection === 'down' ? 'top' : 'bottom']: lineDirection === 'down' ? '96px' : '-88px',
-                          left: textPosition === 'right' ? '154px' : textPosition === 'left' ? '-264px' : '0px',
-                          transform: textPosition === 'center' ? 'translateX(-50%)' : 'none'
+                          filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.8))',
+                          letterSpacing: '0.05em'
                         }}
                       >
-                        <div className="bg-card border-2 border-primary px-4 py-2 rounded-lg glow animate-fade-in">
-                          <span className="text-primary font-mono text-sm font-semibold">
-                            <TypewriterText text={component.name} isActive={isHovered} />
-                            <span className="inline-block w-0.5 h-4 bg-primary ml-1 animate-pulse" />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                        <TypewriterText text={component.name} isActive={isHovered} />
+                      </text>
+                      
+                      {/* Blinking cursor */}
+                      <rect
+                        x={textPosition === 'right' ? '305' : textPosition === 'left' ? '90' : '255'}
+                        y={lineDirection === 'down' ? '145' : '45'}
+                        width="2"
+                        height="12"
+                        fill="hsl(var(--accent))"
+                        className="animate-pulse"
+                      >
+                        <animate
+                          attributeName="opacity"
+                          values="1;0;1"
+                          dur="1s"
+                          repeatCount="indefinite"
+                        />
+                      </rect>
+                    </svg>
                   )}
                 </div>
               );
