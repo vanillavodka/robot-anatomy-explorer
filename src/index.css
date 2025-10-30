@@ -93,27 +93,14 @@ All colors MUST be HSL.
   .pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
-
-  /* Line extension animation */
-  @keyframes extend-line {
-    from {
-      transform: scaleY(0);
-      opacity: 0;
-    }
-    to {
-      transform: scaleY(1);
-      opacity: 1;
-    }
-  }
-
-  /* Dash animation for polyline */
-  @keyframes dash {
-    from {
-      stroke-dashoffset: 500;
-    }
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
 }
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
