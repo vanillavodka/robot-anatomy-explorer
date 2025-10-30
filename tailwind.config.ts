@@ -99,6 +99,10 @@ export default {
         "scan-line": {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(100%)" }
+        },
+        "extend-line": {
+          "from": { transform: "scaleY(0)", opacity: "0" },
+          "to": { transform: "scaleY(1)", opacity: "1" }
         }
       },
       animation: {
@@ -107,7 +111,8 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "slide-in-right": "slide-in-right 0.4s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
-        "scan-line": "scan-line 3s ease-in-out infinite"
+        "scan-line": "scan-line 3s ease-in-out infinite",
+        "extend-line": "extend-line 0.3s ease-out forwards"
       },
     },
   },

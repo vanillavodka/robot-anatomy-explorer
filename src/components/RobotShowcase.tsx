@@ -1,8 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import robotMain from "@/assets/robot-main.png";
+
+const TypewriterText = ({ text, isActive }: { text: string; isActive: boolean }) => {
+  const [displayedText, setDisplayedText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isActive) {
+      setDisplayedText("");
+      setCurrentIndex(0);
+      return;
+    }
+
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 50);
+      return () => clearTimeout(timeout);
+    }
+  }, [isActive, currentIndex, text]);
+
+  return <span>{displayedText}</span>;
+};
 
 interface ComponentInfo {
   id: string;
@@ -99,33 +122,86 @@ export const RobotShowcase = () => {
             />
             
             {/* Interactive hotspots */}
-            {components.map((component) => (
-              <button
-                key={component.id}
-                className={`absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full 
-                  border-2 border-primary bg-primary/20 backdrop-blur-sm
-                  transition-all duration-300 hover:scale-125 hover:bg-primary/40
-                  ${hoveredId === component.id ? 'pulse-glow scale-125' : 'glow'}
-                  ${selectedComponent?.id === component.id ? 'bg-primary/60 scale-150' : ''}`}
-                style={{ top: component.position.top, left: component.position.left }}
-                onClick={() => setSelectedComponent(component)}
-                onMouseEnter={() => setHoveredId(component.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              >
-                <div className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
-                <div className="relative w-full h-full rounded-full border-2 border-accent" />
-              </button>
-            ))}
-          </div>
+            {components.map((component) => {
+              const isHovered = hoveredId === component.id;
+              const isSelected = selectedComponent?.id === component.id;
+              
+              // Calculate line direction based on position
+              const topPercent = parseFloat(component.position.top);
+              const leftPercent = parseFloat(component.position.left);
+              const lineDirection = topPercent < 50 ? 'down' : 'up';
+              const textPosition = leftPercent < 30 ? 'right' : leftPercent > 70 ? 'left' : 'center';
+              
+              return (
+                <div key={component.id}>
+                  <button
+                    className={`absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 rounded-full 
+                      border-2 border-primary bg-primary/20 backdrop-blur-sm
+                      transition-all duration-300 hover:scale-125 hover:bg-primary/40 z-20
+                      ${isHovered ? 'pulse-glow scale-125' : 'glow'}
+                      ${isSelected ? 'bg-primary/60 scale-150' : ''}`}
+                    style={{ top: component.position.top, left: component.position.left }}
+                    onClick={() => setSelectedComponent(component)}
+                    onMouseEnter={() => setHoveredId(component.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
+                    <div className="absolute inset-0 rounded-full bg-primary/50 animate-ping" />
+                    <div className="relative w-full h-full rounded-full border-2 border-accent" />
+                  </button>
 
-          {/* Component name tooltip */}
-          {hoveredId && !selectedComponent && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-fade-in">
-              <Badge className="bg-primary text-primary-foreground px-4 py-2 text-sm glow">
-                {components.find(c => c.id === hoveredId)?.name}
-              </Badge>
-            </div>
-          )}
+                  {/* Extending line animation */}
+                  {isHovered && !selectedComponent && (
+                    <div
+                      className="absolute -translate-x-1/2 z-10"
+                      style={{ 
+                        top: component.position.top, 
+                        left: component.position.left,
+                      }}
+                    >
+                      {/* Vertical line */}
+                      <div 
+                        className={`absolute left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-${lineDirection === 'down' ? 'b' : 't'} from-primary to-accent animate-fade-in`}
+                        style={{
+                          height: '80px',
+                          [lineDirection === 'down' ? 'top' : 'bottom']: '24px',
+                          animation: 'extend-line 0.3s ease-out forwards'
+                        }}
+                      />
+                      
+                      {/* Horizontal line */}
+                      <div 
+                        className="absolute w-24 h-0.5 bg-gradient-to-r from-primary to-accent"
+                        style={{
+                          [lineDirection === 'down' ? 'top' : 'bottom']: lineDirection === 'down' ? '104px' : '-80px',
+                          left: textPosition === 'right' ? '24px' : textPosition === 'left' ? '-120px' : '-48px',
+                          animation: 'extend-line 0.3s ease-out 0.15s forwards',
+                          transformOrigin: textPosition === 'right' ? 'left' : 'right',
+                          opacity: 0
+                        }}
+                      />
+
+                      {/* Text label with typewriter effect */}
+                      <div 
+                        className="absolute whitespace-nowrap"
+                        style={{
+                          [lineDirection === 'down' ? 'top' : 'bottom']: lineDirection === 'down' ? '96px' : '-88px',
+                          left: textPosition === 'right' ? '154px' : textPosition === 'left' ? '-264px' : '0px',
+                          transform: textPosition === 'center' ? 'translateX(-50%)' : 'none'
+                        }}
+                      >
+                        <div className="bg-card border-2 border-primary px-4 py-2 rounded-lg glow animate-fade-in">
+                          <span className="text-primary font-mono text-sm font-semibold">
+                            <TypewriterText text={component.name} isActive={isHovered} />
+                            <span className="inline-block w-0.5 h-4 bg-primary ml-1 animate-pulse" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Component Info Panel */}
