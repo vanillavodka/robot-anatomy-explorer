@@ -105,14 +105,15 @@ All colors MUST be HSL.
       opacity: 1;
     }
   }
+
+  /* Dash animation for polyline */
+  @keyframes dash {
+    from {
+      stroke-dashoffset: 500;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-}

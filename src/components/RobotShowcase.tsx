@@ -19,12 +19,19 @@ const TypewriterText = ({ text, isActive }: { text: string; isActive: boolean })
       const timeout = setTimeout(() => {
         setDisplayedText(prev => prev + text[currentIndex]);
         setCurrentIndex(prev => prev + 1);
-      }, 50);
+      }, 80);
       return () => clearTimeout(timeout);
     }
   }, [isActive, currentIndex, text]);
 
-  return <span>{displayedText}</span>;
+  return (
+    <span className="inline-block">
+      {displayedText}
+      {isActive && currentIndex < text.length && (
+        <span className="inline-block w-0.5 h-4 bg-accent ml-1 animate-pulse" />
+      )}
+    </span>
+  );
 };
 
 interface ComponentInfo {
@@ -126,11 +133,61 @@ export const RobotShowcase = () => {
               const isHovered = hoveredId === component.id;
               const isSelected = selectedComponent?.id === component.id;
               
-              // Calculate line direction based on position
+              // Calculate positioning
               const topPercent = parseFloat(component.position.top);
               const leftPercent = parseFloat(component.position.left);
-              const lineDirection = topPercent < 50 ? 'down' : 'up';
-              const textPosition = leftPercent < 30 ? 'right' : leftPercent > 70 ? 'left' : 'center';
+              
+              // Determine line path direction (8 different directions)
+              let pathPoints = "";
+              let textX = 0;
+              let textY = 0;
+              let textAnchor: "start" | "middle" | "end" = "start";
+              
+              if (leftPercent < 35) {
+                // Left side - extend right
+                if (topPercent < 30) {
+                  pathPoints = "200,100 200,60 220,60 220,30 320,30";
+                  textX = 325;
+                  textY = 35;
+                } else if (topPercent > 70) {
+                  pathPoints = "200,100 200,140 220,140 220,170 320,170";
+                  textX = 325;
+                  textY = 175;
+                } else {
+                  pathPoints = "200,100 230,100 230,80 320,80";
+                  textX = 325;
+                  textY = 85;
+                }
+              } else if (leftPercent > 65) {
+                // Right side - extend left
+                if (topPercent < 30) {
+                  pathPoints = "200,100 200,60 180,60 180,30 80,30";
+                  textX = 75;
+                  textY = 35;
+                  textAnchor = "end";
+                } else if (topPercent > 70) {
+                  pathPoints = "200,100 200,140 180,140 180,170 80,170";
+                  textX = 75;
+                  textY = 175;
+                  textAnchor = "end";
+                } else {
+                  pathPoints = "200,100 170,100 170,80 80,80";
+                  textX = 75;
+                  textY = 85;
+                  textAnchor = "end";
+                }
+              } else {
+                // Center - extend to sides based on vertical position
+                if (topPercent < 40) {
+                  pathPoints = "200,100 200,50 230,50 230,20 320,20";
+                  textX = 325;
+                  textY = 25;
+                } else {
+                  pathPoints = "200,100 200,150 230,150 230,180 320,180";
+                  textX = 325;
+                  textY = 185;
+                }
+              }
               
               return (
                 <div key={component.id}>
@@ -149,74 +206,100 @@ export const RobotShowcase = () => {
                     <div className="relative w-full h-full rounded-full border-2 border-accent" />
                   </button>
 
-                  {/* Dashed polyline with text on line */}
+                  {/* Animated dashed line with typewriter text */}
                   {isHovered && !selectedComponent && (
                     <svg 
-                      className="absolute pointer-events-none z-10"
+                      className="absolute pointer-events-none z-10 overflow-visible"
                       style={{ 
                         top: component.position.top, 
                         left: component.position.left,
-                        width: '400px',
-                        height: '200px',
+                        width: '500px',
+                        height: '250px',
                         transform: 'translate(-50%, -50%)'
                       }}
                     >
-                      {/* Dashed polyline path */}
+                      <defs>
+                        <linearGradient id={`line-gradient-${component.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                          <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="1" />
+                          <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="1" />
+                        </linearGradient>
+                        
+                        <filter id={`glow-${component.id}`}>
+                          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                          <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      
+                      {/* Main dashed polyline with animation */}
                       <polyline
-                        points={
-                          lineDirection === 'down' && textPosition === 'right' 
-                            ? "200,100 200,150 300,150"
-                            : lineDirection === 'down' && textPosition === 'left'
-                            ? "200,100 200,150 100,150"
-                            : lineDirection === 'down' && textPosition === 'center'
-                            ? "200,100 200,150 250,150"
-                            : lineDirection === 'up' && textPosition === 'right'
-                            ? "200,100 200,50 300,50"
-                            : lineDirection === 'up' && textPosition === 'left'
-                            ? "200,100 200,50 100,50"
-                            : "200,100 200,50 250,50"
-                        }
+                        points={pathPoints}
                         fill="none"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth="2"
-                        strokeDasharray="8 4"
+                        stroke={`url(#line-gradient-${component.id})`}
+                        strokeWidth="2.5"
+                        strokeDasharray="10 5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        filter={`url(#glow-${component.id})`}
                         className="animate-fade-in"
                         style={{
-                          filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.6))'
+                          strokeDashoffset: 500,
+                          animation: 'dash 0.8s ease-out forwards'
                         }}
                       />
                       
-                      {/* Text on the line with typewriter effect */}
+                      {/* Glowing dots at corners */}
+                      {pathPoints.split(' ').slice(1, -1).map((point, idx) => {
+                        const [x, y] = point.split(',').map(Number);
+                        return (
+                          <circle
+                            key={idx}
+                            cx={x}
+                            cy={y}
+                            r="3"
+                            fill="hsl(var(--accent))"
+                            className="animate-pulse"
+                            style={{
+                              filter: 'drop-shadow(0 0 4px hsl(var(--accent) / 0.8))'
+                            }}
+                          />
+                        );
+                      })}
+                      
+                      {/* Text background container */}
+                      <rect
+                        x={textAnchor === "end" ? textX - 160 : textX - 5}
+                        y={textY - 18}
+                        width="165"
+                        height="28"
+                        rx="6"
+                        fill="hsl(var(--background) / 0.95)"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="1.5"
+                        className="animate-scale-in"
+                        style={{
+                          filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.4))'
+                        }}
+                      />
+                      
+                      {/* Typewriter text on line */}
                       <text
-                        x={textPosition === 'right' ? '305' : textPosition === 'left' ? '95' : '255'}
-                        y={lineDirection === 'down' ? '155' : '55'}
+                        x={textAnchor === "end" ? textX - 82 : textX + 78}
+                        y={textY + 1}
                         fill="hsl(var(--primary))"
                         className="font-mono text-sm font-bold"
-                        textAnchor={textPosition === 'left' ? 'end' : 'start'}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
                         style={{
-                          filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.8))',
-                          letterSpacing: '0.05em'
+                          letterSpacing: '0.05em',
+                          filter: 'drop-shadow(0 0 2px hsl(var(--primary) / 0.6))'
                         }}
                       >
                         <TypewriterText text={component.name} isActive={isHovered} />
                       </text>
-                      
-                      {/* Blinking cursor */}
-                      <rect
-                        x={textPosition === 'right' ? '305' : textPosition === 'left' ? '90' : '255'}
-                        y={lineDirection === 'down' ? '145' : '45'}
-                        width="2"
-                        height="12"
-                        fill="hsl(var(--accent))"
-                        className="animate-pulse"
-                      >
-                        <animate
-                          attributeName="opacity"
-                          values="1;0;1"
-                          dur="1s"
-                          repeatCount="indefinite"
-                        />
-                      </rect>
                     </svg>
                   )}
                 </div>
