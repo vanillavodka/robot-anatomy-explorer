@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ChevronDown, Calendar, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MilestoneImage {
@@ -16,6 +16,7 @@ interface MilestoneEvent {
   title: string;
   description: string;
   images: MilestoneImage[];
+  highlight: string;
 }
 
 const milestones: MilestoneEvent[] = [
@@ -24,7 +25,8 @@ const milestones: MilestoneEvent[] = [
     year: "2020",
     month: "03",
     title: "公司成立",
-    description: "在深圳成立，专注智能机器人研发，组建核心技术团队",
+    description: "在深圳成立，专注智能机器人研发，组建核心技术团队，开启智能制造新征程。",
+    highlight: "开启征程",
     images: [
       { url: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80", caption: "创始团队合影" },
       { url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80", caption: "办公环境" },
@@ -36,7 +38,8 @@ const milestones: MilestoneEvent[] = [
     year: "2021",
     month: "06",
     title: "首款产品发布",
-    description: "智能服务机器人Alpha 1.0正式发布，获得市场广泛认可",
+    description: "智能服务机器人Alpha 1.0正式发布，获得市场广泛认可，首年销售额突破5000万。",
+    highlight: "产品突破",
     images: [
       { url: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=800&q=80", caption: "产品发布会" },
       { url: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&q=80", caption: "产品展示" },
@@ -48,7 +51,8 @@ const milestones: MilestoneEvent[] = [
     year: "2022",
     month: "09",
     title: "A轮融资",
-    description: "完成5000万美元A轮融资，加速产品研发和市场拓展",
+    description: "完成5000万美元A轮融资，加速产品研发和市场拓展，团队规模扩大至300人。",
+    highlight: "资本助力",
     images: [
       { url: "https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80", caption: "签约仪式" },
       { url: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80", caption: "战略会议" },
@@ -60,7 +64,8 @@ const milestones: MilestoneEvent[] = [
     year: "2023",
     month: "12",
     title: "国际化布局",
-    description: "在美国、欧洲设立分公司，产品销往全球50多个国家",
+    description: "在美国、欧洲设立分公司，产品销往全球50多个国家，国际市场份额达35%。",
+    highlight: "全球扩张",
     images: [
       { url: "https://images.unsplash.com/photo-1569098644584-210bcd375b59?w=800&q=80", caption: "国际展会" },
       { url: "https://images.unsplash.com/photo-1577495508326-19a1b3cf65b7?w=800&q=80", caption: "海外办公室" },
@@ -72,7 +77,8 @@ const milestones: MilestoneEvent[] = [
     year: "2024",
     month: "08",
     title: "技术突破",
-    description: "AI算法性能提升300%，发布第三代智能机器人平台",
+    description: "AI算法性能提升300%，发布第三代智能机器人平台，获得15项国际专利认证。",
+    highlight: "技术领先",
     images: [
       { url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=80", caption: "研发中心" },
       { url: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80", caption: "技术团队" },
@@ -82,24 +88,15 @@ const milestones: MilestoneEvent[] = [
 ];
 
 export const Milestone = () => {
-  const [selectedMilestone, setSelectedMilestone] = useState<MilestoneEvent>(milestones[0]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(milestones[0].id);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<Record<string, number>>({});
 
-  const handlePrevImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === 0 ? selectedMilestone.images.length - 1 : prev - 1
-    );
+  const toggleExpand = (id: string) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
-  const handleNextImage = () => {
-    setCurrentImageIndex((prev) => 
-      prev === selectedMilestone.images.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const handleMilestoneClick = (milestone: MilestoneEvent) => {
-    setSelectedMilestone(milestone);
-    setCurrentImageIndex(0);
+  const handleImageClick = (milestoneId: string, imageIndex: number) => {
+    setSelectedImageIndex(prev => ({ ...prev, [milestoneId]: imageIndex }));
   };
 
   return (
@@ -119,172 +116,146 @@ export const Milestone = () => {
           <div className="w-24 h-1 bg-gradient-to-r from-transparent via-accent to-transparent mx-auto" />
         </div>
 
-        {/* Event Cards Grid */}
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {milestones.map((milestone, index) => (
-            <Card
-              key={milestone.id}
-              onClick={() => handleMilestoneClick(milestone)}
-              className={`group relative overflow-hidden cursor-pointer transition-all duration-500 hover:scale-105 animate-fade-in ${
-                selectedMilestone.id === milestone.id
-                  ? 'border-primary glow-strong ring-2 ring-primary/50'
-                  : 'border-primary/20 hover:border-primary/60'
-              }`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {/* Background Image */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                style={{
-                  backgroundImage: `url('${milestone.images[0].url}')`,
-                }}
-              />
-              
-              {/* Overlay */}
-              <div className={`absolute inset-0 transition-all duration-500 ${
-                selectedMilestone.id === milestone.id
-                  ? 'bg-gradient-to-br from-primary/90 via-background/85 to-background/80'
-                  : 'bg-gradient-to-br from-background/95 via-background/90 to-background/85 group-hover:from-background/90 group-hover:via-background/85 group-hover:to-background/80'
-              }`} />
+        {/* Vertical Timeline */}
+        <div className="max-w-5xl mx-auto relative">
+          {/* Vertical line */}
+          <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-accent to-primary" />
 
-              {/* Animated corner accents */}
-              <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-primary/40 group-hover:border-primary transition-colors duration-500" />
-              <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-accent/40 group-hover:border-accent transition-colors duration-500" />
+          <div className="space-y-8">
+            {milestones.map((milestone, index) => {
+              const isExpanded = expandedId === milestone.id;
+              const currentImageIndex = selectedImageIndex[milestone.id] || 0;
+              const isLeft = index % 2 === 0;
 
-              <CardContent className="relative z-10 p-6 h-full flex flex-col justify-between min-h-[280px]">
-                {/* Date Badge */}
-                <div className="flex justify-between items-start mb-4">
-                  <Badge className={`transition-all duration-300 ${
-                    selectedMilestone.id === milestone.id
-                      ? 'bg-primary/30 text-primary border-primary'
-                      : 'bg-background/50 text-foreground border-primary/30'
-                  }`}>
-                    {milestone.year}年{milestone.month}月
-                  </Badge>
-                  {selectedMilestone.id === milestone.id && (
-                    <div className="w-3 h-3 rounded-full bg-primary animate-pulse-glow" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 space-y-3">
-                  <h3 className="text-2xl font-bold text-foreground drop-shadow-lg group-hover:text-primary transition-colors duration-300">
-                    {milestone.title}
-                  </h3>
-                  <div className="h-px bg-gradient-to-r from-primary/50 via-accent/30 to-transparent" />
-                  <p className="text-foreground/90 leading-relaxed drop-shadow-md text-sm">
-                    {milestone.description}
-                  </p>
-                </div>
-
-                {/* Image Count */}
-                <div className="flex items-center gap-2 mt-4 text-xs">
-                  <div className="flex gap-1">
-                    {milestone.images.slice(0, 3).map((_, idx) => (
-                      <div key={idx} className="w-1.5 h-1.5 rounded-full bg-accent/60" />
-                    ))}
-                  </div>
-                  <span className="text-muted-foreground">{milestone.images.length} 张图片</span>
-                </div>
-
-                {/* Hover indicator */}
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="text-xs text-primary/70">点击查看详情</div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Detail Panel */}
-        <div className="max-w-6xl mx-auto mt-16">
-          <Card className="border-primary/30 bg-card/50 backdrop-blur-sm overflow-hidden glow animate-fade-in">
-            <div className="grid md:grid-cols-5 gap-0">
-              {/* Image Gallery - Takes 3 columns */}
-              <div className="md:col-span-3 relative h-[400px] bg-muted/20">
-                <img
-                  src={selectedMilestone.images[currentImageIndex].url}
-                  alt={selectedMilestone.images[currentImageIndex].caption}
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* Image navigation */}
-                <div className="absolute inset-0 flex items-center justify-between p-4">
-                  <Button
-                    onClick={handlePrevImage}
-                    size="icon"
-                    variant="secondary"
-                    className="rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90 glow"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    onClick={handleNextImage}
-                    size="icon"
-                    variant="secondary"
-                    className="rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90 glow"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </div>
-
-                {/* Image indicators */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {selectedMilestone.images.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        idx === currentImageIndex 
-                          ? 'w-8 bg-primary glow' 
-                          : 'bg-primary/30 hover:bg-primary/60'
+              return (
+                <div
+                  key={milestone.id}
+                  className={`relative animate-fade-in ${isLeft ? 'md:pr-[50%]' : 'md:pl-[50%]'}`}
+                  style={{ animationDelay: `${index * 0.15}s` }}
+                >
+                  {/* Timeline node */}
+                  <div className="absolute left-8 md:left-1/2 top-8 -translate-x-1/2 z-20">
+                    <div 
+                      className={`w-16 h-16 rounded-full border-4 flex items-center justify-center cursor-pointer transition-all duration-500 ${
+                        isExpanded
+                          ? 'border-primary bg-primary/30 glow-strong scale-125'
+                          : 'border-primary/40 bg-background hover:border-primary hover:scale-110 hover:glow'
                       }`}
-                    />
-                  ))}
-                </div>
-
-                {/* Image caption */}
-                <div className="absolute bottom-12 left-0 right-0 text-center">
-                  <Badge className="bg-background/80 backdrop-blur-sm text-foreground border-primary/30">
-                    {selectedMilestone.images[currentImageIndex].caption}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Info Section - Takes 2 columns */}
-              <div className="md:col-span-2 p-8 flex flex-col justify-center relative bg-gradient-to-br from-primary/5 to-transparent">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-                
-                <div className="relative z-10 space-y-6">
-                  <div>
-                    <Badge className="mb-4 bg-primary/20 text-primary border-primary">
-                      {selectedMilestone.year}年 {selectedMilestone.month}月
-                    </Badge>
-                    <h3 className="text-3xl font-bold text-foreground mb-4">
-                      {selectedMilestone.title}
-                    </h3>
-                    <div className="h-px bg-gradient-to-r from-primary/50 to-transparent mb-4" />
-                  </div>
-
-                  <p className="text-lg text-muted-foreground leading-relaxed">
-                    {selectedMilestone.description}
-                  </p>
-
-                  {/* Image navigation info */}
-                  <div className="flex gap-4 pt-4">
-                    <div className="flex-1 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                      <div className="text-2xl font-bold text-primary">{currentImageIndex + 1}</div>
-                      <div className="text-xs text-muted-foreground">当前图片</div>
-                    </div>
-                    <div className="flex-1 p-4 rounded-lg bg-accent/5 border border-accent/20">
-                      <div className="text-2xl font-bold text-accent">{selectedMilestone.images.length}</div>
-                      <div className="text-xs text-muted-foreground">总图片数</div>
+                      onClick={() => toggleExpand(milestone.id)}
+                    >
+                      <div className="text-center">
+                        <div className={`text-lg font-bold ${isExpanded ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {milestone.year.slice(-2)}
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Content Card */}
+                  <Card
+                    className={`ml-24 md:ml-0 border-primary/30 bg-card/50 backdrop-blur-sm transition-all duration-500 cursor-pointer ${
+                      isExpanded ? 'border-primary glow-strong' : 'hover:border-primary/60 hover:glow'
+                    }`}
+                    onClick={() => !isExpanded && toggleExpand(milestone.id)}
+                  >
+                    <CardContent className="p-6">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <Badge className="bg-primary/20 text-primary border-primary">
+                              {milestone.year}年{milestone.month}月
+                            </Badge>
+                            <Badge className="bg-accent/20 text-accent border-accent">
+                              {milestone.highlight}
+                            </Badge>
+                          </div>
+                          <h3 className="text-2xl font-bold text-foreground mb-2">
+                            {milestone.title}
+                          </h3>
+                          <div className="h-px bg-gradient-to-r from-primary/50 to-transparent mb-3" />
+                          <p className="text-muted-foreground leading-relaxed">
+                            {milestone.description}
+                          </p>
+                        </div>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpand(milestone.id);
+                          }}
+                          className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                        >
+                          <ChevronDown className="w-5 h-5" />
+                        </Button>
+                      </div>
+
+                      {/* Expandable Image Gallery */}
+                      {isExpanded && (
+                        <div className="mt-6 animate-fade-in">
+                          {/* Main Image */}
+                          <div className="relative h-80 rounded-lg overflow-hidden mb-4 glow">
+                            <img
+                              src={milestone.images[currentImageIndex].url}
+                              alt={milestone.images[currentImageIndex].caption}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/90 to-transparent p-4">
+                              <Badge className="bg-background/80 backdrop-blur-sm text-foreground border-primary/30">
+                                <ImageIcon className="w-3 h-3 mr-2" />
+                                {milestone.images[currentImageIndex].caption}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {/* Thumbnail Grid */}
+                          <div className="grid grid-cols-3 gap-3">
+                            {milestone.images.map((image, idx) => (
+                              <div
+                                key={idx}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleImageClick(milestone.id, idx);
+                                }}
+                                className={`relative h-24 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
+                                  currentImageIndex === idx
+                                    ? 'ring-2 ring-primary glow scale-105'
+                                    : 'opacity-60 hover:opacity-100 hover:scale-105'
+                                }`}
+                              >
+                                <img
+                                  src={image.url}
+                                  alt={image.caption}
+                                  className="w-full h-full object-cover"
+                                />
+                                {currentImageIndex === idx && (
+                                  <div className="absolute inset-0 bg-primary/20" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Image counter */}
+                          <div className="mt-4 flex justify-center gap-2">
+                            {milestone.images.map((_, idx) => (
+                              <div
+                                key={idx}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  currentImageIndex === idx ? 'w-8 bg-primary glow' : 'w-1.5 bg-primary/30'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-            </div>
-          </Card>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
