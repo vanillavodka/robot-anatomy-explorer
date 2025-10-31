@@ -3,6 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import robotMain from "@/assets/robot-main.png";
+import { VisionMission } from "./VisionMission";
+import { Milestone } from "./Milestone";
 
 interface ComponentInfo {
   id: string;
@@ -69,16 +71,17 @@ export const RobotShowcase = () => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated grid background */}
-      <div className="absolute inset-0 tech-grid opacity-30" />
-      
-      {/* Scan line effect */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line opacity-20" />
-      </div>
+    <>
+      <div className="min-h-screen bg-background relative overflow-hidden">
+        {/* Animated grid background */}
+        <div className="absolute inset-0 tech-grid opacity-30" />
+        
+        {/* Scan line effect */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent animate-scan-line opacity-20" />
+        </div>
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
+        <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -173,8 +176,15 @@ export const RobotShowcase = () => {
         )}
       </div>
 
-      {/* Bottom decorative line */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
-    </div>
+        {/* Bottom decorative line */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
+      </div>
+
+      {/* Vision & Mission Section */}
+      <VisionMission />
+
+      {/* Milestone Section */}
+      <Milestone />
+    </>
   );
 };
